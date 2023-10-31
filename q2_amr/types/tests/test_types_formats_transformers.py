@@ -36,6 +36,7 @@ from q2_amr.types._format import (
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
+    CARDMAGKmerAnalysisFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
@@ -328,3 +329,10 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         )
         metadata_obt = transformer(annotation)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+
+class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
+    def test_card_mag_kmer_analysis_validate_positive(self):
+        filepath = self.get_data_path("kmer_analysis_rgi_summary.txt")
+        format = CARDMAGKmerAnalysisFormat(filepath, mode="r")
+        format.validate()
