@@ -72,6 +72,7 @@ def load_card_db(
                 kmer_size,
             ]
         )
+        return kmer_size
 
     try:
         run_command(cmd, tmp, verbose=True)

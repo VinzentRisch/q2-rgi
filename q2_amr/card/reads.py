@@ -103,6 +103,10 @@ def move_files(source_dir: str, des_dir: str, map_type: str):
         os.path.join(source_dir, "output.overall_mapping_stats.txt"),
         os.path.join(des_dir, "overall_mapping_stats.txt"),
     )
+    shutil.copy(
+        os.path.join(source_dir, "output.sorted.length_100.bam"),
+        os.path.join(des_dir, "sorted.length_100.bam"),
+    )
 
 
 def run_rgi_bwt(

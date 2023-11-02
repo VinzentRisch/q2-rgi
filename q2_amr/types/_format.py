@@ -10,6 +10,7 @@ import re
 from copy import copy
 
 import pandas as pd
+import pysam
 import qiime2.plugin.model as model
 from q2_types.feature_data._format import DNAFASTAFormat
 from q2_types_genomics.per_sample_data._format import MultiDirValidationMixin
@@ -398,15 +399,28 @@ class CARDAnnotationStatsFormat(model.TextFileFormat):
         self._validate()
 
 
+class CARDAnnotationBamFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        try:
+            with pysam.AlignmentFile(str(self), "rb"):
+                pass
+        except ValueError:
+            raise ValidationError("File must be a BAM file.")
+
+    def _validate_(self, level):
+        self._validate()
+
+
 class CARDAlleleAnnotationDirectoryFormat(
     MultiDirValidationMixin, model.DirectoryFormat
 ):
     allele = model.FileCollection(
-        r".+(allele_mapping_data.txt)$", format=CARDAlleleAnnotationFormat
+        "allele_mapping_data.txt", format=CARDAlleleAnnotationFormat
     )
     stats = model.FileCollection(
-        r".+(overall_mapping_stats.txt)$", format=CARDAnnotationStatsFormat
+        "overall_mapping_stats.txt", format=CARDAnnotationStatsFormat
     )
+    bam = model.FileCollection("sorted.length_100.bam", format=CARDAnnotationBamFormat)
 
     @allele.set_path_maker
     def allele_path_maker(self, sample_id):
@@ -415,6 +429,10 @@ class CARDAlleleAnnotationDirectoryFormat(
     @stats.set_path_maker
     def stats_path_maker(self, sample_id):
         return "%s/overall_mapping_stats.txt" % sample_id
+
+    @bam.set_path_maker
+    def bam_path_maker(self, sample_id):
+        return "%s/sorted.length_100.bam" % sample_id
 
 
 class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
@@ -465,12 +483,12 @@ class CARDMAGsKmerAnalysisDirectoryFormat(
     MultiDirValidationMixin, model.DirectoryFormat
 ):
     txt = model.FileCollection(
-        r"kmer_\d+mer_analysis_rgi_summary.txt$", format=CARDMAGsKmerAnalysisFormat
+        r"\d+mer_analysis_mags.txt$", format=CARDMAGsKmerAnalysisFormat
     )
 
     @txt.set_path_maker
     def txt_path_maker(self, sample_id, bin_id):
-        pattern = r"kmer_\d+mer_analysis_rgi_summary.txt$"
+        pattern = r"\d+mer_analysis_mags.txt$"
         return f"{sample_id}/{bin_id}/{pattern}"
 
 
@@ -502,10 +520,10 @@ class CARDReadsKmerAnalysisDirectoryFormat(
     MultiDirValidationMixin, model.DirectoryFormat
 ):
     txt = model.FileCollection(
-        r"kmer_\d+mer_analysis_rgi_summary.txt$", format=CARDReadsKmerAnalysisFormat
+        r"\d+mer_analysis_analysis_reads.txt$", format=CARDReadsKmerAnalysisFormat
     )
 
     @txt.set_path_maker
     def txt_path_maker(self, sample_id, bin_id):
-        pattern = r"kmer_\d+mer_analysis_rgi_summary.txt$"
+        pattern = r"kmer_\d+mer_analysis_analysis_reads.txt$"
         return f"{sample_id}/{bin_id}/{pattern}"

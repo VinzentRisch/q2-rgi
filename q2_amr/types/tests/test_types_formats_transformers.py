@@ -30,13 +30,14 @@ from q2_amr.types import (
     CARDGeneAnnotationDirectoryFormat,
 )
 from q2_amr.types._format import (
+    CARDAnnotationBamFormat,
     CARDAnnotationDirectoryFormat,
     CARDAnnotationTXTFormat,
     CARDDatabaseFormat,
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
-    CARDMAGKmerAnalysisFormat,
+    CARDMAGsKmerAnalysisFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
@@ -334,5 +335,10 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
 class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
     def test_card_mag_kmer_analysis_validate_positive(self):
         filepath = self.get_data_path("kmer_analysis_rgi_summary.txt")
-        format = CARDMAGKmerAnalysisFormat(filepath, mode="r")
+        format = CARDMAGsKmerAnalysisFormat(filepath, mode="r")
+        format.validate()
+
+    def test_card_annotation_bam_format_validate_positive(self):
+        filepath = self.get_data_path("sorted.length_100.bam")
+        format = CARDAnnotationBamFormat(filepath, mode="r")
         format.validate()

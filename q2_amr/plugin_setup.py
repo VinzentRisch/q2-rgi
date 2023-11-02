@@ -20,6 +20,7 @@ from qiime2.plugin import Citations, Plugin
 from q2_amr import __version__
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
+from q2_amr.card.kmer import kmer_query_mags_card
 from q2_amr.card.mags import annotate_mags_card
 from q2_amr.card.reads import annotate_reads_card, visualize_annotation_stats
 from q2_amr.types import (
@@ -39,6 +40,10 @@ from q2_amr.types._format import (
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
+    CARDMAGsKmerAnalysisDirectoryFormat,
+    CARDMAGsKmerAnalysisFormat,
+    CARDReadsKmerAnalysisDirectoryFormat,
+    CARDReadsKmerAnalysisFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
@@ -47,6 +52,8 @@ from q2_amr.types._type import (
     CARDAnnotation,
     CARDGeneAnnotation,
     CARDKmerDatabase,
+    CARDMAGsKmerAnalysis,
+    CARDReadsKmerAnalysis,
 )
 
 citations = Citations.load("citations.bib", package="q2_amr")
@@ -208,10 +215,46 @@ plugin.visualizers.register_function(
     citations=[citations["alcock_card_2023"]],
 )
 
+plugin.methods.register_function(
+    function=kmer_query_mags_card,
+    inputs={
+        "amr_annotations": SampleData[
+            PairedEndSequencesWithQuality | SequencesWithQuality
+        ],
+        "kmer_db": CARDKmerDatabase,
+        "card_db": CARDDatabase,
+    },
+    parameters={
+        "minimum": Int % Range(0, None, inclusive_start=False),
+        "threads": Int % Range(0, None, inclusive_start=False),
+    },
+    outputs=[
+        ("kmer_analysis", CARDMAGsKmerAnalysis),
+    ],
+    input_descriptions={
+        "amr_annotations": "AMR annotations created with method annotate-mags-card.",
+        "card_db": "CARD Database",
+        "kmer_db": "K-mer Database",
+    },
+    parameter_descriptions={
+        "minimum": "Minimum number of kmers in the called category for the "
+        "classification to be made.",
+        "threads": "Number of threads (CPUs) to use.",
+    },
+    output_descriptions={
+        "kmer_analysis": "Taxonomic predictions for MAGs.",
+    },
+    name="Kmer query for MAG AMR annotations",
+    description="",
+    citations=[citations["alcock_card_2023"]],
+)
+
 # Registrations
 plugin.register_semantic_types(
     CARDDatabase,
     CARDKmerDatabase,
+    CARDMAGsKmerAnalysis,
+    CARDReadsKmerAnalysis,
     CARDAnnotation,
     CARDAlleleAnnotation,
     CARDGeneAnnotation,
@@ -219,6 +262,12 @@ plugin.register_semantic_types(
 
 plugin.register_semantic_type_to_format(
     CARDKmerDatabase, artifact_format=CARDKmerDatabaseDirectoryFormat
+)
+plugin.register_semantic_type_to_format(
+    CARDMAGsKmerAnalysis, artifact_format=CARDMAGsKmerAnalysisDirectoryFormat
+)
+plugin.register_semantic_type_to_format(
+    CARDReadsKmerAnalysis, artifact_format=CARDReadsKmerAnalysisDirectoryFormat
 )
 plugin.register_semantic_type_to_format(
     CARDDatabase, artifact_format=CARDDatabaseDirectoryFormat
@@ -238,6 +287,10 @@ plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
+    CARDMAGsKmerAnalysisFormat,
+    CARDMAGsKmerAnalysisDirectoryFormat,
+    CARDReadsKmerAnalysisFormat,
+    CARDReadsKmerAnalysisDirectoryFormat,
     GapDNAFASTAFormat,
     CARDWildcardIndexFormat,
     CARDAnnotationTXTFormat,
