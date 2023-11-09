@@ -20,7 +20,11 @@ from qiime2.plugin import Citations, Plugin
 from q2_amr import __version__
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
-from q2_amr.card.kmer import kmer_query_mags_card
+from q2_amr.card.kmer import (
+    kmer_build_card,
+    kmer_query_mags_card,
+    kmer_query_reads_card,
+)
 from q2_amr.card.mags import annotate_mags_card
 from q2_amr.card.reads import annotate_reads_card, visualize_annotation_stats
 from q2_amr.types import (
@@ -218,9 +222,7 @@ plugin.visualizers.register_function(
 plugin.methods.register_function(
     function=kmer_query_mags_card,
     inputs={
-        "amr_annotations": SampleData[
-            PairedEndSequencesWithQuality | SequencesWithQuality
-        ],
+        "amr_annotations": SampleData[CARDAnnotation],
         "kmer_db": CARDKmerDatabase,
         "card_db": CARDDatabase,
     },
@@ -237,17 +239,81 @@ plugin.methods.register_function(
         "kmer_db": "K-mer Database",
     },
     parameter_descriptions={
-        "minimum": "Minimum number of kmers in the called category for the "
+        "minimum": "Minimum number of k-mers in the called category for the "
         "classification to be made.",
         "threads": "Number of threads (CPUs) to use.",
     },
     output_descriptions={
         "kmer_analysis": "Taxonomic predictions for MAGs.",
     },
-    name="Kmer query for MAG AMR annotations",
+    name="K-mer query for MAGs AMR annotations",
     description="",
     citations=[citations["alcock_card_2023"]],
 )
+
+plugin.methods.register_function(
+    function=kmer_query_reads_card,
+    inputs={
+        "amr_annotations": SampleData[CARDGeneAnnotation | CARDAlleleAnnotation],
+        "kmer_db": CARDKmerDatabase,
+        "card_db": CARDDatabase,
+    },
+    parameters={
+        "minimum": Int % Range(0, None, inclusive_start=False),
+        "threads": Int % Range(0, None, inclusive_start=False),
+    },
+    outputs=[
+        ("kmer_analysis", CARDReadsKmerAnalysis),
+    ],
+    input_descriptions={
+        "amr_annotations": "AMR annotations created with method annotate-reads-card.",
+        "card_db": "CARD Database",
+        "kmer_db": "K-mer Database",
+    },
+    parameter_descriptions={
+        "minimum": "Minimum number of k-mers in the called category for the "
+        "classification to be made.",
+        "threads": "Number of threads (CPUs) to use.",
+    },
+    output_descriptions={
+        "kmer_analysis": "Taxonomic predictions for reads.",
+    },
+    name="K-mer query for reads AMR annotations",
+    description="",
+    citations=[citations["alcock_card_2023"]],
+)
+
+plugin.methods.register_function(
+    function=kmer_build_card,
+    inputs={
+        "card_db": CARDDatabase,
+    },
+    parameters={
+        "kmer_size": Int % Range(0, None, inclusive_start=False),
+        "threads": Int % Range(0, None, inclusive_start=False),
+        "batch_size": Int % Range(0, None, inclusive_start=False),
+    },
+    outputs=[
+        ("kmer_db", CARDKmerDatabase),
+    ],
+    input_descriptions={
+        "card_db": "CARD Database",
+    },
+    parameter_descriptions={
+        "kmer_size": "Length of k-mers in base pairs.",
+        "threads": "Number of threads (CPUs) to use.",
+        "batch_size": "Number of k-mers to query at a time using pyahocorasick--the "
+        "greater the number the more memory usage.",
+    },
+    output_descriptions={
+        "kmer_db": "K-mer database with custom k-mer size.",
+    },
+    name="K-mer build",
+    description="With kmer_build_card a kmer database can be built with a custom kmer"
+    " size",
+    citations=[citations["alcock_card_2023"]],
+)
+
 
 # Registrations
 plugin.register_semantic_types(

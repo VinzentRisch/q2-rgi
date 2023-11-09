@@ -143,7 +143,7 @@ def run_rgi_kmer_build(
 ):
     cmd = [
         "rgi",
-        "kmer_query",
+        "kmer_build",
         "--input_directory",
         input_directory,
         "--card",

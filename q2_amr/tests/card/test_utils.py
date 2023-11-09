@@ -64,6 +64,12 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 include_other_models=True,
                 include_wildcard=True,
             )
+
+            # Print actual calls
+            actual_calls = mock_run_command.call_args_list
+            for call_args in actual_calls:
+                print("Actual Call:", call_args)
+
             expected_calls = [
                 call(
                     [
