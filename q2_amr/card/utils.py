@@ -58,6 +58,7 @@ def load_card_db(
                 path_wildcard_index,
             ]
         )
+    kmer_size = None
     if kmer:
         path_kmer_json = glob.glob(os.path.join(str(kmer_db), "*_kmer_db.json"))[0]
         path_kmer_txt = glob.glob(os.path.join(str(kmer_db), "all_amr_*mers.txt"))[0]
@@ -72,7 +73,6 @@ def load_card_db(
                 kmer_size,
             ]
         )
-        return kmer_size
 
     try:
         run_command(cmd, tmp, verbose=True)
@@ -82,6 +82,7 @@ def load_card_db(
             f"(return code {e.returncode}), please inspect "
             "stdout and stderr to learn more."
         )
+    return kmer_size
 
 
 def read_in_txt(path: str, col_name: str, samp_bin_name: str):

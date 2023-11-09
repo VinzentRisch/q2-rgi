@@ -231,33 +231,26 @@ class TestAnnotateReadsCARD(TestPluginBase):
     def move_files_test_body(self, map_type):
         with tempfile.TemporaryDirectory() as tmp:
             source_dir = os.path.join(tmp, "source_dir")
-            des_dir = os.path.join(
-                tmp,
-                "des_dir",
-            )
-            os.makedirs(os.path.join(source_dir))
-            os.makedirs(os.path.join(des_dir))
-            mapping_data = self.get_data_path(f"output.{map_type}_mapping_data.txt")
-            mapping_stats = self.get_data_path("output.overall_mapping_stats.txt")
-            shutil.copy(mapping_data, source_dir)
-            shutil.copy(mapping_stats, source_dir)
+            des_dir = os.path.join(tmp, "des_dir")
+
+            os.mkdir(source_dir)
+            os.mkdir(des_dir)
+
+            files = [
+                f"output.{map_type}_mapping_data.txt",
+                "output.overall_mapping_stats.txt",
+                "output.sorted.length_100.bam",
+            ]
+
+            for file in files:
+                file_path = self.get_data_path(file)
+                shutil.copy(file_path, source_dir)
+
             move_files(source_dir, des_dir, map_type)
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(
-                        des_dir,
-                        f"{map_type}_mapping_data.txt",
-                    )
-                )
-            )
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(
-                        des_dir,
-                        "overall_mapping_stats.txt",
-                    )
-                )
-            )
+
+            for file in files:
+                file_path = os.path.join(des_dir, file[7:])
+                self.assertTrue(os.path.exists(file_path))
 
     def test_extract_sample_stats(self):
         with tempfile.TemporaryDirectory() as tmp:
