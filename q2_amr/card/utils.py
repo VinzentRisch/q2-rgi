@@ -32,32 +32,41 @@ def load_card_db(
     include_other_models: bool = False,
     include_wildcard: bool = False,
 ):
+    # Get path to card.json
     path_card_json = os.path.join(str(card_db), "card.json")
+
+    # Base command that only loads card.json into the local database
     cmd = ["rgi", "load", "--card_json", path_card_json, "--local"]
+
+    # Define suffixes for card fasta file
     models = ("_all", "_all_models") if include_other_models is True else ("", "")
+
+    # Extend base command with flag to load card fasta file
     if fasta:
+        # Retrieve the database version number from card.jason file
         with open(path_card_json) as f:
             card_data = json.load(f)
             version = card_data["_version"]
+
+        # Define path to card fasta file
         path_card_fasta = os.path.join(
             str(card_db), f"card_database_v{version}{models[0]}.fasta"
         )
+
+        # Extend base command
         cmd.extend([f"--card_annotation{models[1]}", path_card_fasta])
+
+    # Extend base command with flag to load wildcard fasta file and index
     if include_wildcard:
-        path_wildcard_fasta = os.path.join(
-            str(card_db), f"wildcard_database_v0{models[0]}.fasta"
-        )
-        path_wildcard_index = os.path.join(
-            str(card_db), "index-for-model-sequences.txt"
-        )
         cmd.extend(
             [
                 f"--wildcard_annotation{models[1]}",
-                path_wildcard_fasta,
+                os.path.join(str(card_db), f"wildcard_database_v0{models[0]}.fasta"),
                 "--wildcard_index",
-                path_wildcard_index,
+                os.path.join(str(card_db), "index-for-model-sequences.txt"),
             ]
         )
+    # Extend base command with flag to load kmer json and txt database files
     kmer_size = None
     if kmer:
         path_kmer_json = glob.glob(os.path.join(str(kmer_db), "*_kmer_db.json"))[0]
@@ -70,10 +79,11 @@ def load_card_db(
                 "--amr_kmers",
                 path_kmer_txt,
                 "--kmer_size",
-                kmer_size,
+                os.path.basename(path_kmer_json).split("_")[0],
             ]
         )
 
+    # Run command
     try:
         run_command(cmd, tmp, verbose=True)
     except subprocess.CalledProcessError as e:
@@ -85,26 +95,39 @@ def load_card_db(
     return kmer_size
 
 
-def read_in_txt(path: str, col_name: str, samp_bin_name: str):
+def read_in_txt(path: str, samp_bin_name: str, data_type):
+    # Read in txt file to pd.Dataframe
     df = pd.read_csv(path, sep="\t")
-    if df.empty:
-        return None
-    df = df[[col_name]]
+
+    # Process the df depending on the data type (from reads or mags)
+    if data_type == "reads":
+        df = df[["ARO Term", "All Mapped Reads"]]
+        df.rename(columns={"All Mapped Reads": samp_bin_name}, inplace=True)
+    else:
+        df = df[["Best_Hit_ARO"]]
+        df[samp_bin_name] = 1
+
     df = df.astype(str)
-    df[samp_bin_name] = df.groupby(col_name)[col_name].transform("count")
-    df = df.drop_duplicates(subset=[col_name])
     return df
 
 
 def create_count_table(df_list: list) -> pd.DataFrame:
+    # Remove all empty lists from df_list
+    df_list = [df for df in df_list if not df.empty]
+
+    # Raise ValueError if df_list is empty. This happens when no ARGs were detected
     if not df_list:
         raise ValueError(
             "RGI did not identify any AMR genes. No output can be created."
         )
+
+    # Merge all dfs contained in df_list
     df = reduce(
         lambda left, right: pd.merge(left, right, on=left.columns[0], how="outer"),
         df_list,
     )
+
+    # Process the df to meet all requirements for a FeatureTable
     df = df.transpose()
     df = df.fillna(0)
     df.columns = df.iloc[0]
