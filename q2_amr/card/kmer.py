@@ -48,13 +48,14 @@ def kmer_query_reads_card(
 
 
 def kmer_query(data_type, card_db, kmer_db, amr_annotations, minimum, threads):
-    kmer_analysis = CARDReadsKmerAnalysisDirectoryFormat()
     if data_type == "reads":
         annotation_file = "sorted.length_100.bam"
         input_type = "bwt"
+        kmer_analysis = CARDReadsKmerAnalysisDirectoryFormat()
     else:
         annotation_file = "amr_annotation.json"
         input_type = "rgi"
+        kmer_analysis = CARDMAGsKmerAnalysisDirectoryFormat()
     with tempfile.TemporaryDirectory() as tmp:
         kmer_size = load_card_db(tmp=tmp, card_db=card_db, kmer_db=kmer_db, kmer=True)
         for root, dirs, files in os.walk(str(amr_annotations)):

@@ -53,9 +53,10 @@ class TestAnnotateReadsCARD(TestPluginBase):
         # Create a sample directory
         samp_dir = os.path.join(cwd, samp)
 
-        # Copy three dummy files to the directory
+        # Copy four dummy files to the directory
         for a, b in zip(["allele", "gene", "overall"], ["data", "data", "stats"]):
             shutil.copy(self.get_data_path(f"output.{a}_mapping_{b}.txt"), samp_dir)
+        shutil.copy(self.get_data_path("output.sorted.length_100.bam"), samp_dir)
 
     def annotate_reads_card_test_body(self, read_type):
         # Create single end or paired end reads object and CARD database object

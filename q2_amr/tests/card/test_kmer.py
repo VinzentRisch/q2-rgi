@@ -64,16 +64,16 @@ class TestKmer(TestPluginBase):
 
     def test_kmer_query_mags_card(self):
         self._run_kmer_query_test(
-            CARDAnnotationDirectoryFormat,
-            CARDMAGsKmerAnalysisDirectoryFormat,
-            kmer_query_mags_card,
+            annotation_format=CARDAnnotationDirectoryFormat,
+            output_format=CARDMAGsKmerAnalysisDirectoryFormat,
+            query_function=kmer_query_mags_card,
         )
 
     def test_kmer_query_reads_card(self):
         self._run_kmer_query_test(
-            CARDGeneAnnotationDirectoryFormat,
-            CARDReadsKmerAnalysisDirectoryFormat,
-            kmer_query_reads_card,
+            annotation_format=CARDGeneAnnotationDirectoryFormat,
+            output_format=CARDReadsKmerAnalysisDirectoryFormat,
+            query_function=kmer_query_reads_card,
         )
 
     def test_run_rgi_kmer_query(self):
