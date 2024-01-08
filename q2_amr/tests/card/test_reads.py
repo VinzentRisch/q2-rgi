@@ -13,7 +13,6 @@ from qiime2.plugin.testing import TestPluginBase
 from q2_amr.card.reads import (
     annotate_reads_card,
     extract_sample_stats,
-    move_files,
     plot_sample_stats,
     run_rgi_bwt,
     visualize_annotation_stats,
@@ -146,13 +145,13 @@ class TestAnnotateReadsCARD(TestPluginBase):
 
             # Assert if the expected files are in every sample directory and in both
             # resulting CARD annotation objects
+
             for num in [0, 1]:
                 map_type = "allele" if num == 0 else "gene"
+                files = [f"{map_type}_mapping_data.txt", "overall_mapping_stats.txt"]
+                files.append("sorted.length_100.bam") if map_type == "allele" else None
                 for samp in ["sample1", "sample2"]:
-                    for file in [
-                        f"{map_type}_mapping_data.txt",
-                        "overall_mapping_stats.txt",
-                    ]:
+                    for file in files:
                         self.assertTrue(
                             os.path.exists(os.path.join(str(result[num]), samp, file))
                         )
@@ -204,36 +203,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
             run_rgi_bwt()
             self.assertEqual(str(cm.exception), expected_message)
-
-    def test_move_files_allele(self):
-        self.move_files_test_body("allele")
-
-    def test_move_files_gene(self):
-        self.move_files_test_body("gene")
-
-    def move_files_test_body(self, map_type):
-        with tempfile.TemporaryDirectory() as tmp:
-            source_dir = os.path.join(tmp, "source_dir")
-            des_dir = os.path.join(tmp, "des_dir")
-
-            os.mkdir(source_dir)
-            os.mkdir(des_dir)
-
-            files = [
-                f"output.{map_type}_mapping_data.txt",
-                "output.overall_mapping_stats.txt",
-                "output.sorted.length_100.bam",
-            ]
-
-            for file in files:
-                file_path = self.get_data_path(file)
-                shutil.copy(file_path, source_dir)
-
-            move_files(source_dir, des_dir, map_type)
-
-            for file in files:
-                file_path = os.path.join(des_dir, file[7:])
-                self.assertTrue(os.path.exists(file_path))
 
     def test_extract_sample_stats(self):
         with tempfile.TemporaryDirectory() as tmp:

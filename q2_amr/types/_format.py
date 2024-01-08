@@ -415,12 +415,14 @@ class CARDAlleleAnnotationDirectoryFormat(
     MultiDirValidationMixin, model.DirectoryFormat
 ):
     allele = model.FileCollection(
-        "allele_mapping_data.txt", format=CARDAlleleAnnotationFormat
+        r".+allele_mapping_data.txt$", format=CARDAlleleAnnotationFormat
     )
     stats = model.FileCollection(
-        "overall_mapping_stats.txt", format=CARDAnnotationStatsFormat
+        r".+overall_mapping_stats.txt$", format=CARDAnnotationStatsFormat
     )
-    bam = model.FileCollection("sorted.length_100.bam", format=CARDAnnotationBamFormat)
+    bam = model.FileCollection(
+        r".+sorted.length_100.bam$", format=CARDAnnotationBamFormat
+    )
 
     @allele.set_path_maker
     def allele_path_maker(self, sample_id):
@@ -437,10 +439,10 @@ class CARDAlleleAnnotationDirectoryFormat(
 
 class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
     gene = model.FileCollection(
-        r".+(gene_mapping_data.txt)$", format=CARDGeneAnnotationFormat
+        r".+gene_mapping_data.txt$", format=CARDGeneAnnotationFormat
     )
     stats = model.FileCollection(
-        r".+(overall_mapping_stats.txt)$", format=CARDAnnotationStatsFormat
+        r".+overall_mapping_stats.txt$", format=CARDAnnotationStatsFormat
     )
 
     @gene.set_path_maker
